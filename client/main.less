@@ -1,0 +1,270 @@
+// Formatting
+@margin: 15px;
+@recessedMargin: 8px;
+@marginOffset: 3px;
+
+@largeFont: 24px;
+
+// Colors
+@paleGray: #DDDEDE;
+@offBlack: #232122;
+@lightBlue: #7BA4A8;
+@paleGreen: #C0D28C;
+@lightGreen: #A5C05B;
+
+//Template: html,body
+html,body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden; //Prevents the page from scrolling
+  font-family: sans-serif;
+  background-color: @paleGray;
+}
+
+//Template: map
+#map {
+  margin: @margin;
+  height: 45vh;
+  max-width: 100vw;
+}
+
+//Template: plantTypesNavBar
+#plantTypesNavBar {
+  margin: @margin;
+
+  ul {
+    padding: @recessedMargin;
+    background-color: @offBlack;
+    text-align: center;
+
+    :first-child, :last-child, a {
+      display: inline;
+      color: white;
+    }
+
+    :first-child, :last-child {
+      font-weight: bold;
+      padding: 0 @margin - @marginOffset;
+    }
+
+    :first-child {
+      float: left;
+    }
+
+    :last-child {
+      float: right;
+    }
+
+    a {
+      text-decoration: none;
+      padding: @margin - @marginOffset;
+    }
+
+    a:hover {
+      background-color: @lightGreen;
+    }
+
+    a:target {
+      background-color: @lightBlue;
+    }
+
+  }
+}
+
+//Template: dataDisplay
+#dataDisplay {
+  margin: @margin;
+
+  .inputHeader, #_work_history_header {
+    vertical-align: middle;
+    padding: 0;
+    font-size: @largeFont;
+  }
+
+  .coverageClass, #numberResprouts {
+    display: inline-block;
+    vertical-align: middle;
+    width: 20vw;
+    height: 3vh;
+
+    text-decoration: none;
+    text-align: right;
+    color: white;
+    font-size: @largeFont;
+    padding: 6px 12px;
+    margin: 3px;
+    border: none;
+  }
+
+  .coverageClass {
+    background-color: @lightBlue;
+  }
+
+  #numberResprouts {
+    background-color: @lightGreen;
+  }
+
+  ._subtile_preview_array {
+    height: 38vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    td {
+      padding: 24px;
+    }
+
+    ._subtile_preview {
+      font-size: @largeFont;
+
+      .inputHeader, #numberResprouts, .coverageClass {
+        font-size: 20px;
+      }
+
+      ._plant_data {
+
+
+      }
+    }
+  }
+}
+
+._styled_button {
+  background-color: @lightGreen;
+  color: white;
+  font-size: 18px;
+	border: none;
+	padding: 6px 12px;
+  margin: 3px;
+}
+
+#scrollableTable {
+  border-collapse: collapse;
+  margin: 16px auto;
+
+  th, td {
+    width: 150px;
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+  }
+
+  thead tr {
+    display:block;
+    font-size: 20px;
+
+    :first-child {
+      background-color: @paleGray;
+      width: 24px;
+    }
+
+    th {
+      text-align: left;
+      background-color: @lightBlue;
+      color: white;
+    }
+  }
+
+  tbody {
+    position: relative;
+    display: block;
+    overflow: auto;
+    font-size: 18px;
+    max-height: 200px;
+
+    td {
+      text-align: right;
+
+      input {
+        margin: 0;
+        padding: 0;
+        color: inherit;
+        -webkit-appearance: none;
+        background-color: inherit;
+        border-style: none;
+        border-width: 0;
+        width: 100%;
+      }
+
+      input:focus {
+        background-color: @paleGreen;
+      }
+    }
+  }
+
+  .selected {
+    background-color: @lightGreen;
+    color: white;
+  }
+
+  //#historyProgress[value]:after {
+  //  content: "%";
+  //}
+
+  .historyComments {
+    width: 300px;
+  }
+}
+
+#placeholderHeader, #placeholderRow, #deleteRow {
+  background-color: @paleGray;
+  width: 24px !important;
+}
+
+#photoButton {
+  position: absolute;
+  margin: @margin 0;
+  bottom: 0;
+}
+
+#photoModal {
+  position: fixed;
+  display: none;
+  top: 50%;
+  left: 50%;
+  width: auto;
+  height: auto;
+  -webkit-transform: translate(-50%,-50%);
+  -moz-transform: translate(-50%,-50%);
+  -ms-transform: translate(-50%,-50%);
+  -o-transform: translate(-50%,-50%);
+  transform: translate(-50%,-50%);
+  z-index: 9999;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  white-space: nowrap;
+
+  .slide {
+    display: block;
+  }
+}
+
+#lonLat {
+  visibility: hidden;
+}
+
+#_default_layer_message {
+  font-size: @largeFont;
+  margin: 3px;
+  text-align: center;
+}
+
+::-webkit-scrollbar {
+  width: 0px;  /* remove scrollbar space */
+  background: transparent;  /* optional: just make scrollbar invisible */
+}
+
+input:focus {
+  outline-width: 0;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}

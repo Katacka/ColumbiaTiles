@@ -1,0 +1,162 @@
+<head>
+  <title>ColumbiaTiles</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  <!--{{> menuBar}}-->
+  {{> tileComposite}}
+  {{> photoModal}} <!-- Move these two -->
+</body>
+
+<template name="tileComposite">
+  <div id="tileComposite">
+    {{> propertyMap}}
+    {{> plantTypesNavBar}}
+    {{> dataDisplay}}
+  </div>
+</template>
+
+<template name="propertyMap">
+  <div id="map"></div>
+</template>
+
+<template name="plantTypesNavBar">
+  <div id="plantTypesNavBar">
+    <ul>
+      <span>{{tileName}}</span>
+      <a name="laurel" href="#laurel">Laurel</a>
+      <a name="blackberry" href="#blackberry">Blackberry</a>
+      <a name="smallHolly" href="#smallHolly">Small Holly</a>
+      <a name="largeHolly" href="#largeHolly">Large Holly</a>
+      <a name="groundIvy" href="#groundIvy">Ground Ivy</a>
+      <a name="treeIvy" href="#treeIvy">Tree Ivy</a>
+      <span id='lonLat'>Lon: {{gps.lon}} Lat: {{gps.lat}}</span>
+    </ul>
+  </div>
+</template>
+
+<template name="dataDisplay">
+  <div id="dataDisplay">
+    {{#if isTileContext}}
+      {{#if isTileLayer}}
+        {{> tileDisplay tileData=tileData}}
+        <!--{{> subtilePreviewArray subtileArray=subtileArray}}-->
+      {{else}}
+        <div class="_subtile_data">
+          {{> tileDisplay tileData=tileData}}
+          <div id="_work_history">
+              <table id="scrollableTable">
+                <thead>
+                  <tr id="tableHeader">
+                    <th id="placeholderHeader"></th>
+                    <th>Work Date</th>
+                    <th>Progress</th>
+                    <th>Method</th>
+                    <th>Leader</th>
+                    <th>Group Size</th>
+                    <th>Duration</th>
+                    <th class="historyComments">Comments</th>
+                  </tr>
+                </thead>
+                <tbody id="historyBody">
+                  <tr id="defaultEntry">
+                    <td id="placeholderRow"></td>
+                    <td><input type="date" value="" class="historyDate"></td>
+                    <td><input type="number" max="100" min="-100" class="historyProgress"></td>
+                    <td><input type="text" class="historyMethod"></td>
+                    <td><input type="text" class="historyLeader"></td>
+                    <td><input type="number" max="100" min="0" class="historySize"></td>
+                    <td><input type="number" max="100" min="0" class="historyDuration"></td>
+                    <td><input type="text" class="historyComments"></td>
+                  </tr>
+                  {{#each workEntry}}
+                    <tr class="storedEntry">
+                      <td id="deleteRow"><svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                        <path fill="#000000" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+                      </svg></td>
+                      <td><input type="date" value={{date}} class="historyDate"></td>
+                      <td><input type="number" max="100" min="-100" value={{progress}} class="historyProgress"></td>
+                      <td><input type="text" value={{method}} class="historyMethod"></td>
+                      <td><input type="text" value={{leader}} class="historyLeader"></td>
+                      <td><input type="number" max="100" min="0" value={{size}} class="historySize"></td>
+                      <td><input type="number" max="100" min="0" value={{duration}} class="historyDuration"></td>
+                      <td><input type="text" value={{comments}} class="historyComments"></td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+
+          </div>
+
+          <button class="_styled_button" id="photoButton" type="button">Photos</button>
+        </div>
+      {{/if}}
+    {{else}}
+      <span id="_default_layer_message">Select a tile</span>
+    {{/if}}
+    </div>
+</template>
+
+<template name="tileDisplay">
+  <div id="tileData">
+    <div class="inputHeader">
+      Class:
+      <span class="coverageClass">{{tileData.class}}</span>
+    </div>
+    <div class="inputHeader">
+      Coverage:
+      <input type="number" max="100" min="0" value="{{tileData.resprouts}}" id="numberResprouts">
+    </div>
+  </div>
+</template>
+
+<template name="subTileData">
+
+</template>
+
+<template name="plantData">
+  <div class="_plant_data">
+    <span class="inputHeader">Class: </span>
+    <input type="number" max="4" min="0" value="{{tileData.class}}" class="coverageClass">
+  </div>
+</template>
+
+<!--<template name="subtilePreviewArray">
+  <div class="_subtile_preview_array">
+    <table>
+      <tr>
+        <td data-idx=0>{{> subtilePreview subtile=subtileArray.[0]}}</td>
+        <td data-idx=1>{{> subtilePreview subtile=subtileArray.[1]}}</td>
+      </tr>
+      <tr>
+        <td data-idx=2>{{> subtilePreview subtile=subtileArray.[2]}}</td>
+        <td data-idx=3>{{> subtilePreview subtile=subtileArray.[3]}}</td>
+      </tr>
+    </table>
+  </div>
+</template>-->
+
+<!--<template name="subtilePreview">
+  <div class="_subtile_preview">
+    {{subtile.name}}
+    {{> tileDisplay tileData=subtile}}
+  </div>
+</template>-->
+
+<template name="photoModal">
+  <div id="photoModal">
+    {{#each photos}}
+    <!-- TODO: Complete image loop-->
+    {{/each}}
+  </div>
+</template>
+
+
+<!--
+Subtile Layer
+<p>Time:</p>
+<p>Method:</p>
+<p>Crew Size:</p>
+<p>Crew Leader:</p>
+<p>Comments:</p>-->
