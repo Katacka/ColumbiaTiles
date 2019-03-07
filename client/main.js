@@ -13,7 +13,6 @@ const Map = require('/client/map.js');
 
 Session.set("isBlurred", false);
 Session.set("date", 'test');
-Session.set("dateIdx", 0);
 Session.set("lonLat");
 
 Template.body.events({
@@ -83,7 +82,7 @@ Template.dataDisplay.helpers({
     let focusedTile = tile[Session.get("plantFocus")];
     console.log(focusedTile);
     //let dateIdx = Session.get("dateIdx");
-    let date = Session.get("date") || 'test';
+    let date = Session.get("date");
     console.log(focusedTile);
     console.log(date);
 
@@ -108,52 +107,32 @@ Template.dataDisplay.events({
     let coveragePercent = parseInt(event.currentTarget.value);
     let plantFocus = Session.get('plantFocus');
     let tile = Session.get('tileContext');
-    let date = Session.get('date') || 'test';
+    let date = Session.get('date');
 
     tile[plantFocus][date] = {
       class: invasiveCoverageConversion(coveragePercent),
       coverage: coveragePercent
     };
 
-    console.log(tile);
-
-    //tile[plantFocus].splice(0, 0, {'class': coverageClass});
-
     Meteor.call('updateTile', tile); //Updates the tile data server-side
     Session.set('tileContext', tile); //Updates the tile data client-side
   },
-  /*'change #subtileData #coverageClass'(event, template) { //Handles subtile coverage updates (from the subtile interface)
-    let coverageClass = parseInt(event.currentTarget.value);
-    let subtile = Session.get('tileContext');
-    let focusedTile = subtile[Session.get('plantFocus')];
-    //let dateIdx = Session.get("dateIdx");
-
-    if (dateIdx < focusedTile.length && dateIdx >= 0) {
-      let tileData = focusedTile[dateIdx];
-      tileData.class = coverageClass;
-
-      let tile = TileData.findOne({"num": subtile.num});
-      tile.subtiles[subtile.idx] = subtile;
-
-      Meteor.call('updateTile', tile); //Updates the tile data server-side
-      Session.set('tileContext', subtile); //Updates the tile data client-side
-    }
-  },*/
   'change #subtileData #coveragePercent'(event, template) { //Handles subtile coverage percent updates (from the subtile interface)
     let coveragePercent = parseInt(event.currentTarget.value);
+    let plantFocus = Session.get('plantFocus');
     let subtile = Session.get('tileContext');
-    let focusedTile = subtile[Session.get('plantFocus')];
-    let dateIdx = Session.get("dateIdx");
+    let date = Session.get("date");
 
-    if (dateIdx < focusedTile.length && dateIdx >= 0) {
-      let tileData = focusedTile[dateIdx];
-      tileData.coverage = coveragePercent;
-      let tile = TileData.findOne({"num": subtile.num});
-      tile.subtiles[subtile.idx] = subtile;
-
-      Meteor.call('updateTile', tile); //Updates the tile data server-side
-      Session.set('tileContext', subtile); //Updates the tile data client-side
+    subtile[plantFocus][date] = {
+      class: invasiveCoverageConversion(coveragePercent),
+      coverage: coveragePercent
     }
+
+    let tile = TileData.findOne({"num": subtile.num});
+    tile.subtiles[subtile.idx] = subtile;
+
+    Meteor.call('updateTile', tile); //Updates the tile data server-side
+    Session.set('tileContext', subtile); //Updates the tile data client-side
   },
   'click #scrollableTable tr'(event, template) {
     let plantFocus = Session.get('plantFocus');
