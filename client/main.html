@@ -18,20 +18,28 @@
 </template>
 
 <template name="propertyMap">
-  <div id="map"></div>
+  <div id="map">
+      {{> dateSelectNavBar}}
+  </div>
+</template>
+
+<template name="dateSelectNavBar">
+  <div id="dateSelect">
+    March, 22nd 2018
+  </div>
 </template>
 
 <template name="plantTypesNavBar">
   <div id="plantTypesNavBar">
     <ul>
       <span>{{tileName}}</span>
-      <a name="laurel" href="#laurel">Laurel</a>
-      <a name="blackberry" href="#blackberry">Blackberry</a>
-      <a name="smallHolly" href="#smallHolly">Small Holly</a>
-      <a name="largeHolly" href="#largeHolly">Large Holly</a>
-      <a name="groundIvy" href="#groundIvy">Ground Ivy</a>
-      <a name="treeIvy" href="#treeIvy">Tree Ivy</a>
-      <span id='lonLat'>Lon: {{gps.lon}} Lat: {{gps.lat}}</span>
+      <a id="laurel" href="#laurel">Laurel</a>
+      <a id="blackberry" href="#blackberry">Blackberry</a>
+      <a id="smallHolly" href="#smallHolly">Small Holly</a>
+      <a id="largeHolly" href="#largeHolly">Large Holly</a>
+      <a id="groundIvy" href="#groundIvy">Ground Ivy</a>
+      <a id="treeIvy" href="#treeIvy">Tree Ivy</a>
+      <span id='lonLat'>{{gps.lon}} {{gps.lat}}</span>
     </ul>
   </div>
 </template>
@@ -43,7 +51,7 @@
         {{> tileDisplay tileData=tileData}}
         <!--{{> subtilePreviewArray subtileArray=subtileArray}}-->
       {{else}}
-        <div class="_subtile_data">
+        <div id="subtileData">
           {{> tileDisplay tileData=tileData}}
           <div id="_work_history">
               <table id="scrollableTable">
@@ -72,9 +80,11 @@
                   </tr>
                   {{#each workEntry}}
                     <tr class="storedEntry">
-                      <td id="deleteRow"><svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                        <path fill="#000000" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
-                      </svg></td>
+                      <td id="deleteRow">
+                        <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                          <path fill="#000000" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+                        </svg>
+                      </td>
                       <td><input type="date" value={{date}} class="historyDate"></td>
                       <td><input type="number" max="100" min="-100" value={{progress}} class="historyProgress"></td>
                       <td><input type="text" value={{method}} class="historyMethod"></td>
@@ -102,11 +112,11 @@
   <div id="tileData">
     <div class="inputHeader">
       Class:
-      <span class="coverageClass">{{tileData.class}}</span>
+      <span id="coverageClass">{{tileData.class}}</span>
     </div>
     <div class="inputHeader">
       Coverage:
-      <input type="number" max="100" min="0" value="{{tileData.resprouts}}" id="numberResprouts">
+      <input id="coveragePercent" type="number" max="100" min="0" value="{{tileData.coverage}}">
     </div>
   </div>
 </template>
@@ -114,35 +124,6 @@
 <template name="subTileData">
 
 </template>
-
-<template name="plantData">
-  <div class="_plant_data">
-    <span class="inputHeader">Class: </span>
-    <input type="number" max="4" min="0" value="{{tileData.class}}" class="coverageClass">
-  </div>
-</template>
-
-<!--<template name="subtilePreviewArray">
-  <div class="_subtile_preview_array">
-    <table>
-      <tr>
-        <td data-idx=0>{{> subtilePreview subtile=subtileArray.[0]}}</td>
-        <td data-idx=1>{{> subtilePreview subtile=subtileArray.[1]}}</td>
-      </tr>
-      <tr>
-        <td data-idx=2>{{> subtilePreview subtile=subtileArray.[2]}}</td>
-        <td data-idx=3>{{> subtilePreview subtile=subtileArray.[3]}}</td>
-      </tr>
-    </table>
-  </div>
-</template>-->
-
-<!--<template name="subtilePreview">
-  <div class="_subtile_preview">
-    {{subtile.name}}
-    {{> tileDisplay tileData=subtile}}
-  </div>
-</template>-->
 
 <template name="photoModal">
   <div id="photoModal">
