@@ -1,4 +1,5 @@
-import { TileData } from '/lib/tile_data.js'
+import { TileData } from '/lib/tile_data.js';
+import Moment from 'moment';
 
 const FILL_OPACITY = 0.5; //Semi-transparent
 const STROKE_COLOR = '#ffffff'; //White tile borders
@@ -30,6 +31,9 @@ module.exports = {
     });
     L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(module.exports.mapContext); //Alternate: Esri.WorldImagery
 
+    //Set default zoom
+    Session.setDefault('zoom', 16);
+
     generateTilesWithData();
     setOnZoomListener();
   },
@@ -41,14 +45,14 @@ module.exports = {
     if (zoom === MapLayers.TILE) {
       module.exports.tileLayerContext.eachLayer((layer) => {
         let tile = TileData.findOne({"num": layer.feature.properties.num});
-        layer.setStyle({ fillColor: updateTileCoverageColoring(tile) });
+        layer.setStyle({ fillColor: updateTileCoverageColoring(tile, Session.get('plantFocus'), Session.get('date')) });
       });
     }
     else if (zoom === MapLayers.SUBTILE || zoom === MapLayers.SUBTILE_ZOOMED) {
       module.exports.subTileLayerContext.eachLayer((layer) => {
         let tile = TileData.findOne({"num": layer.feature.properties.num});
         let subtile = tile.subtiles[layer.feature.properties.idx];
-        layer.setStyle({ fillColor: updateTileCoverageColoring(subtile) });
+        layer.setStyle({ fillColor: updateTileCoverageColoring(subtile, Session.get('plantFocus'), Session.get('date')) });
       });
     }
 
@@ -69,17 +73,17 @@ module.exports = {
     }
   },
 
-  updateTileCoverageColoring: (tile) => {
-    let focusedTile = tile[Session.get('plantFocus')];
-    let date = Session.get("date") || 'test';
+  updateTileCoverageColoring: (tile, plantFocus, date) => {
+    if (tile && plantFocus && date) {
+      let focusedTile = tile[plantFocus].dates[date] || module.exports.findClosestTileByDate(tile, plantFocus, date);
 
-    if (focusedTile[date]) {
-      let tileClass = focusedTile[date].class;
-      return module.exports.updateCoverageColoring(tileClass);
+      if (tile[plantFocus].needsUpdate) return '#EE82EE';
+      else if (focusedTile) return module.exports.updateCoverageColoring(focusedTile.class);
+
+
+      console.log('Invalid coverage class encountered when updating tile coloring');
+      return '#BEBEBE'; //Gray
     }
-
-    console.log('Invalid coverage class encountered when updating tile coloring');
-    return '#BEBEBE'; //Gray
   },
 
   updateCoverageColoring: (tileClass) => { //TODO: Add purple coloring for plots to revisit
@@ -104,8 +108,44 @@ module.exports = {
     }
     console.log('Invalid coverage class encountered when updating tile coloring');
     return '#BEBEBE'; //Light-gray
+  },
+
+  //Needs bug fixing
+  findClosestTileByDate: (tile, plantFocus, currDate) => {
+    let prevDate = -Infinity, desiredDate = new Date(currDate);
+    for (let date in tile[plantFocus].dates) {
+      let tmpDate = new Date(date);
+      console.log(tmpDate);
+      console.log(desiredDate);
+      if (tmpDate.valueOf() <= desiredDate.valueOf()) {
+        prevDate = tmpDate;
+      }
+    }
+
+    checkTileUpdate(tile, plantFocus, desiredDate, prevDate);
+
+    if (prevDate !== -Infinity) {
+      let prevMoment = new Moment(prevDate).format('LL');
+      Session.set('lastModified', prevMoment);
+      return tile[plantFocus].dates[prevMoment];
+    }
+    else {
+      Session.set('lastModified', null);
+      return null;
+    }
   }
 
+}
+
+//TODO: Implement violet coloring for plots which require visitation
+//Consider marking and rendering later?
+function checkTileUpdate(tile, plantFocus, currDate, prevDate) {
+  let checkupTimer = 1.577e10; //6 months in milliseconds
+  if (prevDate !== -Infinity && currDate.valueOf() - prevDate.valueOf() >= checkupTimer) {
+    tile[plantFocus].needsUpdate = true;
+    //Meteor.call('updateTile', tile); //Updates the tile data server-side
+  }
+  else tile[plantFocus].needsUpdate = false;
 }
 
 function generateTilesWithData() {
@@ -257,7 +297,7 @@ function generateTileLayer(plots) {
     style: (feature) => {
       let tile = TileData.findOne({"num": feature.properties.num});
       return {
-        fillColor: module.exports.updateTileCoverageColoring(tile),
+        fillColor: module.exports.updateTileCoverageColoring(tile, Session.get('plantFocus'), Session.get('date')),
         color: STROKE_COLOR,
         fillOpacity: FILL_OPACITY
       }
@@ -268,7 +308,6 @@ function generateTileLayer(plots) {
           let tile = TileData.findOne({"num": feature.properties.num});
           console.log(tile);
           Session.set("tileContext", tile);
-          //Session.set('dateIdx', 0);
           Session.set('lonLat',  feature.properties.lonLat);
           layerContext = layer;
         }
@@ -277,9 +316,9 @@ function generateTileLayer(plots) {
       module.exports.tileCompositeLayerContext.addLayer(
         L.marker(layer.getBounds().getCenter(), {
           icon: L.divIcon({
-            className: 'label',
+            className: 'leaflet-label',
             html: feature.properties.num, //TODO: Check for errors
-            iconSize: [15, 20],
+            iconSize: [25, 20],
           }),
           interactive: false
         })
@@ -296,7 +335,7 @@ function generateSubTileLayer(subPlots) {
       let tile = TileData.findOne({"num": feature.properties.num});
       let subtile = tile.subtiles[feature.properties.idx];
       return {
-        fillColor: module.exports.updateTileCoverageColoring(subtile),
+        fillColor: module.exports.updateTileCoverageColoring(subtile, Session.get('plantFocus'), Session.get('date')),
         color: STROKE_COLOR,
         fillOpacity: FILL_OPACITY
       }
@@ -317,9 +356,9 @@ function generateSubTileLayer(subPlots) {
 
       module.exports.subTileCompositeLayerContext.addLayer(L.marker(layer.getBounds().getCenter(), {
         icon: L.divIcon({
-          className: 'label',
+          className: 'leaflet-label',
           html: feature.properties.name, //TODO: Check for errors
-          iconSize: [15, 20],
+          iconSize: [25, 20],
         }),
         interactive: false
       }));
@@ -336,13 +375,15 @@ function setOnZoomListener() {
     module.exports.toggleMapLayer();
     if (map.getZoom() === MapLayers.TILE) {
       layerChanged = true;
+      Session.set('zoom', 16);
     }
     else if ((map.getZoom() === MapLayers.SUBTILE || map.getZoom() === MapLayers.SUBTILE_ZOOMED) && layerChanged === true) {
       layerChanged = false;
+      Session.set('zoom', 17);
     }
 
-    Session.set('date')
+    //Clear the following session variables on zoom
     Session.set('tileContext');
-    Session.set('lonLat');
+    Session.set("lonLat");
   });
 }

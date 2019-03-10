@@ -1,0 +1,5 @@
+env: flex
+runtime: custom
+env_variables:
+  ROOT_URL: https://CSIMT.appspot-preview.com
+  DISABLE_WEBSCOKETS: "1"

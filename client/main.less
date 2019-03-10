@@ -13,6 +13,16 @@
 @paleGreen: #C0D28C;
 @lightGreen: #A5C05B;
 
+//Leaflet (Because Bootstrap overode these styles)
+.leaflet-marker-icon {
+  font-size: 12px;
+  font-weight: normal;
+  text-align: center;
+  border-radius: 0;
+  color: black;
+  padding: 0;
+}
+
 //Template: html,body
 html,body {
   width: 100%;
@@ -21,6 +31,7 @@ html,body {
   overflow: hidden; //Prevents the page from scrolling
   font-family: sans-serif;
   background-color: @paleGray;
+  line-height: normal;
 }
 
 //Template: map
@@ -33,16 +44,22 @@ html,body {
     position: relative;
     top: 0;
     float: right;
+    margin: 10px;
 
     font-size: @titleFont;
     font-weight: bold;
     z-index: 1000;
+
+    #dateSelector {
+      width: 20vw;
+    }
   }
 }
 
 //Template: plantTypesNavBar
 #plantTypesNavBar {
   margin: @margin;
+  font-size: 16px;
 
   ul {
     padding: @recessedMargin;
@@ -63,6 +80,10 @@ html,body {
       right: @margin * 2 - @marginOffset;
     }
 
+    #lastModified {
+      display: inline-block;
+    }
+
     a {
       text-decoration: none;
       padding: @margin - @marginOffset;
@@ -78,23 +99,23 @@ html,body {
     }
 
   }
+
 }
 
 //Template: dataDisplay
 #dataDisplay {
   margin: @margin;
 
-  .inputHeader, #_work_history_header {
-    vertical-align: middle;
+  .inputHeader, .inputResults {
     padding: 0;
     font-size: @largeFont;
   }
 
-  #coverageClass, #coveragePercent {
+  #coverageProgress, #coverageClass, #coveragePercent {
     display: inline-block;
     vertical-align: middle;
     width: 20vw; //Previously 20vw
-    height: 3vh;
+    height: 4vh;
 
     text-decoration: none;
     text-align: right;
@@ -105,69 +126,31 @@ html,body {
     border: none;
   }
 
-  #coverageClass {
+  #coverageProgress, #coverageClass {
     background-color: @lightBlue;
   }
 
   #coveragePercent {
     background-color: @lightGreen;
   }
-
-  ._subtile_preview_array {
-    height: 38vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    td {
-      padding: 24px;
-    }
-
-    ._subtile_preview {
-      font-size: @largeFont;
-
-      .inputHeader, #coveragePercent, #coverageClass {
-        font-size: 20px;
-      }
-
-      ._plant_data {
-
-
-      }
-    }
-  }
 }
 
-._styled_button {
-  background-color: @lightGreen;
-  color: white;
-  font-size: 18px;
-	border: none;
-	padding: 6px 12px;
-  margin: 3px;
-}
-
-#scrollableTable {
+#detailTable {
   border-collapse: collapse;
   margin: 16px auto;
 
   th, td {
-    width: 150px;
-    padding: 6px 12px;
-    border: 1px solid #ddd;
+    width: 200px;
+    border: 2px solid #ddd;
   }
 
   thead tr {
     display:block;
     font-size: 20px;
 
-    :first-child {
-      background-color: @paleGray;
-      width: 24px;
-    }
-
     th {
       text-align: left;
+      padding: 6px 12px;
       background-color: @lightBlue;
       color: white;
     }
@@ -185,11 +168,12 @@ html,body {
     }
 
     td {
+      vertical-align: top;
       text-align: right;
 
-      input {
+      textarea, input {
         margin: 0;
-        padding: 0;
+        padding: 6px 12px;
         color: inherit;
         -webkit-appearance: none;
         background-color: inherit;
@@ -198,9 +182,22 @@ html,body {
         width: 100%;
       }
 
-      input:focus {
+      input:focus, textarea:focus {
         background-color: @paleGreen;
+        color: White;
       }
+
+      ::-webkit-input-placeholder { opacity: 1; -webkit-transition: opacity .5s; transition: opacity .5s; }  /* Chrome <=56, Safari < 10 */
+      :-moz-placeholder { opacity: 1; -moz-transition: opacity .5s; transition: opacity .5s; } /* FF 4-18 */
+      ::-moz-placeholder { opacity: 1; -moz-transition: opacity .5s; transition: opacity .5s; } /* FF 19-51 */
+      :-ms-input-placeholder { opacity: 1; -ms-transition: opacity .5s; transition: opacity .5s; } /* IE 10+ */
+      ::placeholder { opacity: 1; transition: opacity .5s; } /* Modern Browsers */
+
+      *:focus::-webkit-input-placeholder { opacity: 0; } /* Chrome <=56, Safari < 10 */
+      *:focus:-moz-placeholder { opacity: 0; } /* FF 4-18 */
+      *:focus::-moz-placeholder { opacity: 0; } /* FF 19-50 */
+      *:focus:-ms-input-placeholder { opacity: 0; } /* IE 10+ */
+      *:focus::placeholder { opacity: 0; } /* Modern Browsers */
     }
   }
 
@@ -209,18 +206,33 @@ html,body {
     color: white;
   }
 
-  //#historyProgress[value]:after {
-  //  content: "%";
-  //}
-
   .historyComments {
-    width: 300px;
+    width: 400px;
   }
 }
 
-#placeholderHeader, #placeholderRow, #deleteRow {
-  background-color: @paleGray;
-  width: 24px !important;
+._styled_button {
+  background-color: @lightGreen;
+  color: white;
+  font-size: 18px;
+	border: none;
+	padding: 6px 12px;
+  margin: 3px;
+}
+
+#subtileDetails {
+  text-align: center;
+
+  #detailHeaders {
+    width: 200px; //Previously 20vw
+    height: 400px;
+    background-color: @lightBlue;
+    color: white;
+  }
+
+  #details {
+
+  }
 }
 
 #photoButton {
@@ -234,8 +246,8 @@ html,body {
   display: none;
   top: 50%;
   left: 50%;
-  width: auto;
-  height: auto;
+  width: 100vw;
+  height: 100vh;
   -webkit-transform: translate(-50%,-50%);
   -moz-transform: translate(-50%,-50%);
   -ms-transform: translate(-50%,-50%);
@@ -246,6 +258,16 @@ html,body {
   overflow-x: hidden;
   overflow-y: auto;
   white-space: nowrap;
+
+  justify-content: center;
+  align-items: center;
+
+  #photoUpload {
+    flex: none;
+    height: 33px;
+    margin: @margin 0;
+    bottom: 0;
+  }
 
   .slide {
     display: block;

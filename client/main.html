@@ -1,5 +1,5 @@
 <head>
-  <title>ColumbiaTiles</title>
+  <title>CSIMT</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
@@ -19,20 +19,25 @@
 
 <template name="propertyMap">
   <div id="map">
-      {{> dateSelectNavBar}}
+    {{> dateSelect}}
   </div>
 </template>
 
-<template name="dateSelectNavBar">
+<template name="dateSelect">
   <div id="dateSelect">
-    March, 22nd 2018
+    <div class='input-group date' id='dateSelector'>
+      <input type='text' class="form-control"/>
+      <span class="input-group-addon">
+        <span class="glyphicon glyphicon-time"></span>
+      </span>
+    </div>
   </div>
 </template>
 
 <template name="plantTypesNavBar">
   <div id="plantTypesNavBar">
     <ul>
-      <span>{{tileName}}</span>
+      <span>{{tileName}} {{lastModified}}</span>
       <a id="laurel" href="#laurel">Laurel</a>
       <a id="blackberry" href="#blackberry">Blackberry</a>
       <a id="smallHolly" href="#smallHolly">Small Holly</a>
@@ -52,54 +57,7 @@
         <!--{{> subtilePreviewArray subtileArray=subtileArray}}-->
       {{else}}
         <div id="subtileData">
-          {{> tileDisplay tileData=tileData}}
-          <div id="_work_history">
-              <table id="scrollableTable">
-                <thead>
-                  <tr id="tableHeader">
-                    <th id="placeholderHeader"></th>
-                    <th>Work Date</th>
-                    <th>Progress</th>
-                    <th>Method</th>
-                    <th>Leader</th>
-                    <th>Group Size</th>
-                    <th>Duration</th>
-                    <th class="historyComments">Comments</th>
-                  </tr>
-                </thead>
-                <tbody id="historyBody">
-                  <tr id="defaultEntry">
-                    <td id="placeholderRow"></td>
-                    <td><input type="date" value="" class="historyDate"></td>
-                    <td><input type="number" max="100" min="-100" class="historyProgress"></td>
-                    <td><input type="text" class="historyMethod"></td>
-                    <td><input type="text" class="historyLeader"></td>
-                    <td><input type="number" max="100" min="0" class="historySize"></td>
-                    <td><input type="number" max="100" min="0" class="historyDuration"></td>
-                    <td><input type="text" class="historyComments"></td>
-                  </tr>
-                  {{#each workEntry}}
-                    <tr class="storedEntry">
-                      <td id="deleteRow">
-                        <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-                          <path fill="#000000" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
-                        </svg>
-                      </td>
-                      <td><input type="date" value={{date}} class="historyDate"></td>
-                      <td><input type="number" max="100" min="-100" value={{progress}} class="historyProgress"></td>
-                      <td><input type="text" value={{method}} class="historyMethod"></td>
-                      <td><input type="text" value={{leader}} class="historyLeader"></td>
-                      <td><input type="number" max="100" min="0" value={{size}} class="historySize"></td>
-                      <td><input type="number" max="100" min="0" value={{duration}} class="historyDuration"></td>
-                      <td><input type="text" value={{comments}} class="historyComments"></td>
-                    </tr>
-                  {{/each}}
-                </tbody>
-              </table>
-
-          </div>
-
-          <button class="_styled_button" id="photoButton" type="button">Photos</button>
+          {{> subtileDisplay tileData=tileData}}
         </div>
       {{/if}}
     {{else}}
@@ -116,28 +74,56 @@
     </div>
     <div class="inputHeader">
       Coverage:
-      <input id="coveragePercent" type="number" max="100" min="0" value="{{tileData.coverage}}">
+      <input id="coveragePercent" type="number" step="0.01" max="100" min="0" value="{{tileData.coverage}}">
     </div>
   </div>
 </template>
 
-<template name="subTileData">
-
+<template name="subtileDisplay">
+  <div id="subtileData">
+    <div class="inputHeader">
+      Class:
+      <span id="coverageClass">{{tileData.class}}</span>
+    </div>
+    <div class="inputResults">
+      Progress:
+      <span id="coverageProgress">{{tileData.progress}}</span>
+    </div>
+    <div class="inputHeader">
+      Coverage:
+      <input id="coveragePercent" type="number" step="0.01" max="100" min="0" value="{{tileData.coverage}}">
+    </div>
+    <table id="detailTable">
+      <thead>
+        <tr id="tableHeader">
+          <th>Method</th>
+          <th>Leader</th>
+          <th>Group Size</th>
+          <th>Duration</th>
+          <th class="historyComments">Comments</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="detailData">
+            <td><input type="text" placeholder="..." value={{tileData.method}} class="historyMethod"></td>
+            <td><input type="text" placeholder="..." value={{tileData.leader}} class="historyLeader"></td>
+            <td><input type="number" placeholder="..." max="100" min="0" value={{tileData.size}} class="historySize"></td>
+            <td><input type="number" placeholder="..." max="100" min="0" value={{tileData.duration}} class="historyDuration"></td>
+            <td><textarea rows="8" placeholder="..." cols="80" value={{tileData.comments}} class="historyComments"></textarea></td>
+          </tr>
+      </tbody>
+    </table>
+    <button class="_styled_button" id="photoButton" type="button">Photos</button>
+  </div>
 </template>
 
 <template name="photoModal">
   <div id="photoModal">
     {{#each photos}}
-    <!-- TODO: Complete image loop-->
+
     {{/each}}
+    <form action="/file-upload"
+      class="dropzone"
+      id="my-awesome-dropzone"></form>
   </div>
 </template>
-
-
-<!--
-Subtile Layer
-<p>Time:</p>
-<p>Method:</p>
-<p>Crew Size:</p>
-<p>Crew Leader:</p>
-<p>Comments:</p>-->

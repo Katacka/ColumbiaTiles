@@ -1,5 +1,6 @@
 import { Template } from 'meteor/templating';
 import { ReactiveVar } from 'meteor/reactive-var';
+import Moment from 'moment';
 import { TileData } from '/lib/tile_data.js'
 import './main.html';
 
@@ -11,31 +12,49 @@ const Map = require('/client/map.js');
 //Pictures w/ annotations
 //Class + Percent coverage for each species (4) for varying time periods
 
-Session.set("isBlurred", false);
-Session.set("date", 'test');
 Session.set("lonLat");
 
 Template.body.events({
   'click'(event) {
-    if (Session.get("isBlurred") === true && new Date().getTime() > Session.get('blurTime') + 250) {
-      //$('body').focus(); //Un-blurs the background
-      $('#photoModal').css("display", "none");
+    if ($('#tileComposite').css('filter') !== 'none' && new Date().getTime() > Session.get('blurTime') + 250) {
+      $('#tileComposite').css("filter", "none"); //Unblur the background
+      $('#photoModal').css('display', 'none'); //Hide the photo modal
     }
   }
 });
 
-/*Template.photoModal.helpers({
+Template.photoModal.onCreated(() => {
+  //$('.file_upload').file_upload();
+});
+
+Template.photoModal.helpers({
   photos() {
     let plantFocus = Session.get('plantFocus');
     let subtile = Session.get('tileContext');
-    return subtile[plantFocus].photos;
+    //if (subtile) return subtile[plantFocus].photos;
   }
-});*/
+});
+
+Template.photoModal.events({
+
+});
 
 Template.propertyMap.onCreated(() => {
   Meteor.subscribe('TileData', () => { //Accesses  tile data as stored on the server to generate a map
     console.log(TileData.find().fetch());
     Map.generateMap();
+    rankSitesByPriority();
+  });
+});
+
+Template.dateSelect.onRendered(() => {
+  Session.set("date", new Moment().format('LL'));
+  $('#dateSelector').datetimepicker({
+    format: 'LL',
+    defaultDate: new Moment()
+  }).on('dp.change', (e) => {
+    Session.set('date', e.date.format('LL'));
+    Map.updateMapColoring();
   });
 });
 
@@ -46,26 +65,31 @@ Template.plantTypesNavBar.onCreated(() => {
 
 Template.plantTypesNavBar.helpers({
   tileName() { //Specifically returns the tile name, or layer if no tile context exists
-    console.log(Map.mapContext);
     let tile = Session.get("tileContext");
     if (tile) return tile.name;
-    else if (Map.mapContext.getZoom() === 16) return "Tile_Layer"
+    else if (Session.get('zoom') === 16) return "Tile_Layer"
     else return "Subtile_Layer";
+  },
+  lastModified() {
+    let lastModified = Session.get('lastModified');
+    if (lastModified) {
+      return ' - ' + lastModified;
+    }
   },
   gps() { //Describes the GPS coordinates of the selected tile
     let lonLat = Session.get("lonLat");
-    return {
-      lon: 'Lon: ' + lonLat.lon.toFixed(7),
-      lat: 'Lat: ' + lonLat.lat.toFixed(7)
-    };
+    if (lonLat) {
+      return {
+        lon: 'Lon: ' + lonLat.lon.toFixed(7),
+        lat: 'Lat: ' + lonLat.lat.toFixed(7)
+      };
+    }
   }
 });
 
 Template.plantTypesNavBar.events({
   'click #plantTypesNavBar a'(event, template) {
-    Session.set('dateIdx', 0);
     Session.set('plantFocus', event.currentTarget.id);
-
     Map.updateMapColoring(); //TODO: Remove once session reactivity issues are resolved
   }
 });
@@ -79,37 +103,27 @@ Template.dataDisplay.helpers({
   },
   tileData() { //Returns tile data specific to the plant focus
     let tile = Session.get("tileContext");
-    let focusedTile = tile[Session.get("plantFocus")];
-    console.log(focusedTile);
-    //let dateIdx = Session.get("dateIdx");
+    let plantFocus = Session.get("plantFocus");
     let date = Session.get("date");
-    console.log(focusedTile);
-    console.log(date);
 
-    layerContext.setStyle({ fillColor: Map.updateTileCoverageColoring(tile) }); //Updates map coloring
+    layerContext.setStyle({ fillColor: Map.updateTileCoverageColoring(tile, plantFocus, date) }); //Updates map coloring
 
-    return focusedTile[date];
-  },
-  /*workEntry() { //TODO: Temporarily removed
-    let tile = Session.get("tileContext");
-    let tileData = tile[Session.get("plantFocus")];
-
-    tileData.forEach(entry => {
-      entry.date = entry.date.toISOString().substring(0, 10);
-    });
-
-    return tileData;
-  }*/
+    if (tile[plantFocus].dates[date]) {
+      Session.set('lastModified', date);
+      return tile[plantFocus].dates[date];
+    }
+    else return Map.findClosestTileByDate(tile, plantFocus, date);;
+  }
 });
 
 Template.dataDisplay.events({
   'change #tileData #coveragePercent'(event, template) { //Handles tile coverage updates
-    let coveragePercent = parseInt(event.currentTarget.value);
+    let coveragePercent = parseFloat(event.currentTarget.value);
     let plantFocus = Session.get('plantFocus');
     let tile = Session.get('tileContext');
     let date = Session.get('date');
 
-    tile[plantFocus][date] = {
+    tile[plantFocus].dates[date] = {
       class: invasiveCoverageConversion(coveragePercent),
       coverage: coveragePercent
     };
@@ -117,101 +131,52 @@ Template.dataDisplay.events({
     Meteor.call('updateTile', tile); //Updates the tile data server-side
     Session.set('tileContext', tile); //Updates the tile data client-side
   },
-  'change #subtileData #coveragePercent'(event, template) { //Handles subtile coverage percent updates (from the subtile interface)
-    let coveragePercent = parseInt(event.currentTarget.value);
-    let plantFocus = Session.get('plantFocus');
-    let subtile = Session.get('tileContext');
-    let date = Session.get("date");
-
-    subtile[plantFocus][date] = {
-      class: invasiveCoverageConversion(coveragePercent),
-      coverage: coveragePercent
-    }
-
-    let tile = TileData.findOne({"num": subtile.num});
-    tile.subtiles[subtile.idx] = subtile;
-
-    Meteor.call('updateTile', tile); //Updates the tile data server-side
-    Session.set('tileContext', subtile); //Updates the tile data client-side
+  'change #subtileData input'(event, template) {
+     handleSubtileData(event);
   },
-  'click #scrollableTable tr'(event, template) {
-    let plantFocus = Session.get('plantFocus');
-    let subtile = Session.get('tileContext');
-    let focusedSubtile = subtile[plantFocus];
-
-    let trContext = $(event.currentTarget);
-    $('tr').not(this).removeClass('selected');
-    trContext.addClass('selected');
-
-    if (!trContext.is('#tableHeader')) Session.set("dateIdx", trContext.index() - 1); //Compensates for the two default rows
-    console.log(Session.get("dateIdx"));
-    Session.set("date", parseDate(trContext.find('.historyDate').val()) || new Date());
-  },
-  'change #scrollableTable input'(event, template) {
-    //Gather data from the relevant table row
-    let trContext = $(event.currentTarget).closest('tr');
-    let data = {
-      'class': parseInt($('#coverageClass').val()) || 0,
-      'coverage': parseInt($('#coveragePercent').val()) || 0,
-      'date': parseDate(trContext.find('.historyDate').val()) || new Date(),
-      'progress': parseFloat(trContext.find('.historyProgress').val()),
-      'method': trContext.find('.historyMethod').val(),
-      'leader': trContext.find('.historyLeader').val(),
-      'size': parseInt(trContext.find('.historySize').val()),
-      'duration': parseFloat(trContext.find('.historyDuration').val()),
-      'comments': trContext.find('.historyComments').val()
-    }
-
-    //Ensure all necessary data has been provided
-    let formFilled = true;
-    for (let key in data)  {
-      if (data[key] === null || data[key] === undefined || data[key] === "") formFilled = false;
-    }
-
-    if (formFilled) {
-      let plantFocus = Session.get('plantFocus');
-      let subtile = Session.get('tileContext');
-      let focusedSubtile = subtile[plantFocus];
-
-      console.log(data);
-      let i = insertSubtileData(data, focusedSubtile);
-      //Session.set("dateIdx", i);
-      //console.log(i);
-
-      let tile = TileData.findOne({"num": subtile.num});
-      tile.subtiles[subtile.idx] = subtile;
-
-      $('#defaultEntry').find('input').val(''); //Clear input row
-
-      Meteor.call('updateTile', tile); //Updates the tile data server-side
-      Session.set('tileContext', subtile); //Updates the tile data client-side
-    }
-  },
-  'click #deleteRow'(event, template) {
-    let trContext = $(event.currentTarget).closest('tr');
-    let trIdx = trContext.index();
-
-    let plantFocus = Session.get('plantFocus');
-    let subtile = Session.get('tileContext');
-    let focusedSubtile = subtile[plantFocus];
-
-    if (focusedSubtile.length >= trIdx) {
-       focusedSubtile.splice(trIdx - 1, 1);
-
-      let tile = TileData.findOne({"num": subtile.num});
-      tile.subtiles[subtile.idx] = subtile;
-
-      Meteor.call('updateTile', tile); //Updates the tile data server-side
-      Session.set('tileContext', subtile); //Updates the tile data client-side
-    }
+  'change #subtileData textarea'(event, template) {
+    handleSubtileData(event);
   },
   'click #photoButton'(event, template) { //TODO: Implement
-    //$('#tileComposite').blur(); //Blurs the background
-    /*$('#photoModal').css("display", "block");
-    Session.set('isBlurred', true);
-    Session.set('blurTime', new Date().getTime());*/
+    $('#tileComposite').css('filter', "blur(5px)"); //Blurs the background
+    $('#photoModal').css("display", "flex");
+    Session.set('blurTime', new Date().getTime());
   }
 });
+
+function handleSubtileData(event) {
+  let coveragePercent = parseInt(event.currentTarget.value);
+  let plantFocus = Session.get('plantFocus');
+  let subtile = Session.get('tileContext');
+  let date = Session.get('date');
+
+  let dataContext = $('#detailData');
+  let data = {
+    'class': invasiveCoverageConversion(parseFloat($('#coveragePercent').val())),
+    'progress': 0,
+    'coverage': parseFloat($('#coveragePercent').val()),
+    'date': Session.get('date'),
+    'method': dataContext.find('.historyMethod').val(),
+    'leader': dataContext.find('.historyLeader').val(),
+    'size': parseInt(dataContext.find('.historySize').val()),
+    'duration': parseFloat(dataContext.find('.historyDuration').val()),
+    'comments': dataContext.find('.historyComments').val()
+  }
+
+  //Ensure all necessary data has been provided
+  for (let key in data)  {
+    if (data[key] === null || data[key] === undefined || data[key] === "") return;
+  }
+
+  subtile[plantFocus].dates[date] = data;
+  console.log(subtile);
+
+  let tile = TileData.findOne({"num": subtile.num});
+  tile.subtiles[subtile.idx] = subtile;
+
+  Meteor.call('updateTile', tile); //Updates the tile data server-side
+  Session.set('tileContext', subtile); //Updates the tile data client-side
+}
 
 function parseDate(s) {
   if (s !== undefined && s !== null) {
@@ -220,29 +185,6 @@ function parseDate(s) {
   }
   return undefined;
 }
-
-function insertSubtileData(data, focusedSubtile) {
-  let time = data.date.getTime()/3600000; //Time in hours
-  let prevDate = Session.get("date")
-  let prevTime = (prevDate) ? prevDate.getTime()/3600000 : new Date().getTime()/3600000;
-
-  for (var i = 0; i < focusedSubtile.length; i++) {
-    if (time > focusedSubtile[i].date.getTime()/3600000) {
-      focusedSubtile.splice(i, 0, data);
-      return i;
-    }
-    else if (time === focusedSubtile[i].date.getTime()/3600000) {
-      if (time != prevTime) {
-        focusedSubtile.splice(i, 0);
-      }
-      focusedSubtile[i] = data;
-      return i;
-    }
-  }
-  focusedSubtile.push(data);
-  return i;
-}
-
 
 function invasiveCoverageConversion(percentCoverage) {
   let plantFocus = Session.get('plantFocus');
@@ -258,4 +200,23 @@ function invasiveCoverageConversion(percentCoverage) {
            (percentCoverage <= 5) ? 2 :
            (percentCoverage <= 15) ? 3 : 4;
   }
+}
+
+
+
+function rankSitesByPriority() {
+  let tiles = TileData.find().fetch();
+  /*let siteRankings = {
+    laurel: rankSitesByPriority('laurel', tiles),
+    blackberry: rankSitesByPriority('blackberry', tiles),
+    smallHolly: rankSitesByPriority('smallHolly', tiles),
+    largeHolly: rankSitesByPriority('largeHolly', tiles),
+    groundIvy: rankSitesByPriority('groundIvy', tiles),
+    treeIvy: rankSitesByPriority('treeIvy', tiles)
+  }*/
+}
+
+//TODO: Currently simplified to intersort by coverage
+function rankSitesByPlantType(plantType, tiles) {
+
 }
