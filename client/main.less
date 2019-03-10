@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Formatting
 @margin: 15px;
 @recessedMargin: 8px;
@@ -35,10 +36,34 @@ html,body {
 }
 
 //Template: map
+=======
+/* Formatting */
+@margin: 15px;
+/* Colors */
+@paleGray: #DDDEDE;
+@offBlack: #232122;
+@lightBlue: #7BA4A8;
+@lightGreen: #A5C05B;
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background-color: @paleGray;
+}
+
+#_tile_name {
+  color: @paleGray;
+  font-weight: bold;
+  padding: 0 12px;
+  float: left;
+}
+
+>>>>>>> 14d7af9089e950e1200b5be990583b83fc73b3fc
 #map {
   margin: @margin;
   height: 45vh;
   max-width: 100vw;
+<<<<<<< HEAD
 
   #dateSelect {
     position: relative;
@@ -121,11 +146,60 @@ html,body {
     text-align: right;
     color: white;
     font-size: @largeFont;
+=======
+}
+
+#_menu_options {
+  padding: 0 12px;
+  float: right;
+
+  :hover {}
+}
+
+._tile_data_display {
+  margin: @margin;
+
+  ul {
+    padding: 8px;
+    background-color: @offBlack;
+    list-style-type: none;
+    text-align: center;
+  }
+
+  a {
+    display: inline;
+    color: @paleGray;
+    text-decoration: none;
+    padding: 12px;
+  }
+
+  a:hover {
+    background-color: @lightGreen;
+  }
+
+  .active {
+    background-color: @lightBlue;
+  }
+
+  #_invasive_category {
+    padding: 0;
+    font-size: 24px;
+  }
+
+  #_percent_coverage {
+    text-decoration: none;
+    text-align: right;
+    background-color: @lightBlue;
+    color: @paleGray;
+    font-size: 24px;
+    width: 20vw;
+>>>>>>> 14d7af9089e950e1200b5be990583b83fc73b3fc
     padding: 6px 12px;
     margin: 3px;
     border: none;
   }
 
+<<<<<<< HEAD
   #coverageProgress, #coverageClass {
     background-color: @lightBlue;
   }
@@ -288,6 +362,41 @@ html,body {
 input:focus {
   outline-width: 0;
 }
+=======
+  ._sub_tile_preview_array {
+    height: 38vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    td {
+      padding: 24px;
+    }
+
+    ._subtile_preview {
+      font-size: 24px;
+
+      #_invasive_category {
+        font-size: 20px;
+      }
+
+      #_percent_coverage {
+        font-size: 20px;
+        background-color: @lightGreen;
+      }
+
+      ._plant_data {
+
+        #_percent_coverage {
+          background-color: @lightBlue;
+        }
+      }
+    }
+  }
+}
+
+
+>>>>>>> 14d7af9089e950e1200b5be990583b83fc73b3fc
 
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -298,3 +407,8 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+<<<<<<< HEAD
+=======
+
+._work_history {}
+>>>>>>> 14d7af9089e950e1200b5be990583b83fc73b3fc

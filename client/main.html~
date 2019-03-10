@@ -1,0 +1,24 @@
+<head>
+  <title>ColumbiaTiles</title>
+</head>
+
+<body>
+  {{> menuBar}}
+  {{> tileComposite}}
+  {{> sideBar}}
+</body>
+
+<template name="menuBar">
+  <div class="_menu_bar">
+  </div>
+</template>
+
+<template name="tileComposite">
+  <div class="_tile_composite">
+  </div>		    
+</template>
+
+<template name="sideBar">
+  <div class="_side_bar">
+  </div>
+</template>
