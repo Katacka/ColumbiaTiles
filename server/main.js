@@ -1,11 +1,9 @@
 import { Meteor } from 'meteor/meteor';
-import { TileData } from '../lib/collections.js'
+import { TileData } from '/lib/tile_data.js'
 
-/*Meteor.startup(() => {
-  TileData = new Mongo.Collection('tileData');
-
-});*/
-
-Meteor.publish('tileData', () => {
-  return TileData.find();
+Meteor.startup(() => {
+  Meteor.publish('TileData', () => {
+    console.log(TileData.find({}).fetch());
+    return TileData.find({});
+  });
 });

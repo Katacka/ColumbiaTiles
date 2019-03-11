@@ -1,87 +1,129 @@
 <head>
-  <title>ColumbiaTiles</title>
+  <title>CSIMT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
   <!--{{> menuBar}}-->
   {{> tileComposite}}
+  {{> photoModal}} <!-- Move these two -->
 </body>
 
 <template name="tileComposite">
-  <div class="_tile_composite">
+  <div id="tileComposite">
     {{> propertyMap}}
-    {{> tileDataDisplay}}
+    {{> plantTypesNavBar}}
+    {{> dataDisplay}}
   </div>
 </template>
 
 <template name="propertyMap">
-  <div id="map"></div>
+  <div id="map">
+    {{> dateSelect}}
+  </div>
 </template>
 
-<template name="tileDataDisplay">
-
-  <div class="_tile_data_display">
-    <div class="_plant_types_nav_bar">
-      <ul>
-        <span id="_tile_name">{{tileName}}</span>
-        <a name="laurel" href="#laurel" class="{{#if isContext 'laurel'}}active{{/if}}">Laurel</a>
-        <a name="blackberry" href="#blackberry" class="{{#if isContext 'blackberry'}}active{{/if}}">Blackberry</a>
-        <a name="smallHolly" href="#smallHolly" class="{{#if isContext 'smallHolly'}}active{{/if}}">Small Holly</a>
-        <a name="largeHolly" href="#largeHolly" class="{{#if isContext 'largeHolly'}}active{{/if}}">Large Holly</a>
-        <a name="groundIvy" href="#groundIvy" class="{{#if isContext 'groundIvy'}}active{{/if}}">Ground Ivy</a>
-        <a name="treeIvy" href="#treeIvy" class="{{#if isContext 'treeIvy'}}active{{/if}}">Tree Ivy</a>
-      </ul>
+<template name="dateSelect">
+  <div id="dateSelect">
+    <div class='input-group date' id='dateSelector'>
+      <input type='text' class="form-control"/>
+      <span class="input-group-addon">
+        <span class="glyphicon glyphicon-time"></span>
+      </span>
     </div>
-    {{#if tileDisplay}}
-      {{> plantData tileData=tileData}}
-    {{> subtilePreviewArray subtileArray=subtileArray}}
-    <img src="">
+  </div>
+</template>
+
+<template name="plantTypesNavBar">
+  <div id="plantTypesNavBar">
+    <ul>
+      <span>{{tileName}} {{lastModified}}</span>
+      <a id="laurel" href="#laurel">Laurel</a>
+      <a id="blackberry" href="#blackberry">Blackberry</a>
+      <a id="smallHolly" href="#smallHolly">Small Holly</a>
+      <a id="largeHolly" href="#largeHolly">Large Holly</a>
+      <a id="groundIvy" href="#groundIvy">Ground Ivy</a>
+      <a id="treeIvy" href="#treeIvy">Tree Ivy</a>
+      <span id='lonLat'>{{gps.lon}} {{gps.lat}}</span>
+    </ul>
+  </div>
+</template>
+
+<template name="dataDisplay">
+  <div id="dataDisplay">
+    {{#if isTileContext}}
+      {{#if isTileLayer}}
+        {{> tileDisplay tileData=tileData}}
+        <!--{{> subtilePreviewArray subtileArray=subtileArray}}-->
+      {{else}}
+        <div id="subtileData">
+          {{> subtileDisplay tileData=tileData}}
+        </div>
+      {{/if}}
+    {{else}}
+      <span id="_default_layer_message">Select a tile</span>
     {{/if}}
+    </div>
+</template>
+
+<template name="tileDisplay">
+  <div id="tileData">
+    <div class="inputHeader">
+      Class:
+      <span id="coverageClass">{{tileData.class}}</span>
+    </div>
+    <div class="inputHeader">
+      Coverage:
+      <input id="coveragePercent" type="number" step="0.01" max="100" min="0" value="{{tileData.coverage}}">
+    </div>
   </div>
 </template>
 
-<template name="plantData">
-  <div class="_plant_data">
-    <span id="_invasive_category">Class {{tileData.class}}:</span>
-    <input type="number" max="100" min="0" value="{{tileData.coverage}}" id="_percent_coverage">
-    <!--<span id="_value_padding">%</span>-->
-  </div>
-</template>
-
-<template name="subtilePreviewArray">
-  <div class="_sub_tile_preview_array">
-    <table>
-      <tr>
-        <td>{{> subtilePreview subtile=subtileArray.[0]}}</td>
-        <td>{{> subtilePreview subtile=subtileArray.[1]}}</td>
-      </tr>
-      <tr>
-        <td>{{> subtilePreview subtile=subtileArray.[2]}}</td>
-        <td>{{> subtilePreview subtile=subtileArray.[3]}}</td>
-      </tr>
+<template name="subtileDisplay">
+  <div id="subtileData">
+    <div class="inputHeader">
+      Class:
+      <span id="coverageClass">{{tileData.class}}</span>
+    </div>
+    <div class="inputResults">
+      Progress:
+      <span id="coverageProgress">{{tileData.progress}}</span>
+    </div>
+    <div class="inputHeader">
+      Coverage:
+      <input id="coveragePercent" type="number" step="0.01" max="100" min="0" value="{{tileData.coverage}}">
+    </div>
+    <table id="detailTable">
+      <thead>
+        <tr id="tableHeader">
+          <th>Method</th>
+          <th>Leader</th>
+          <th>Group Size</th>
+          <th>Duration</th>
+          <th class="historyComments">Comments</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr id="detailData">
+            <td><input type="text" placeholder="..." value={{tileData.method}} class="historyMethod"></td>
+            <td><input type="text" placeholder="..." value={{tileData.leader}} class="historyLeader"></td>
+            <td><input type="number" placeholder="..." max="100" min="0" value={{tileData.size}} class="historySize"></td>
+            <td><input type="number" placeholder="..." max="100" min="0" value={{tileData.duration}} class="historyDuration"></td>
+            <td><textarea rows="8" placeholder="..." cols="80" value={{tileData.comments}} class="historyComments"></textarea></td>
+          </tr>
+      </tbody>
     </table>
+    <button class="_styled_button" id="photoButton" type="button">Photos</button>
   </div>
 </template>
 
-<template name="subtilePreview">
-  <div class="_subtile_preview">
-    {{subtile.name}}
-    {{> plantData tileData=subtile}}
-    <span id="_invasive_category">Resprouts: </span>
-    <input type="number" max="100" min="0" value="{{subtile.resprouts}}" id="_percent_coverage">
+<template name="photoModal">
+  <div id="photoModal">
+    {{#each photos}}
+
+    {{/each}}
+    <form action="/file-upload"
+      class="dropzone"
+      id="my-awesome-dropzone"></form>
   </div>
 </template>
-
-<template name="workHistory">
-  <div class="_work_history">
-
-  </div>
-</template>
-
-<!--
-Subtile Layer
-<p>Time:</p>
-<p>Method:</p>
-<p>Crew Size:</p>
-<p>Crew Leader:</p>
-<p>Comments:</p>-->

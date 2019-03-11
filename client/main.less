@@ -1,112 +1,293 @@
-/* Formatting */
+// Formatting
 @margin: 15px;
-/* Colors */
+@recessedMargin: 8px;
+@marginOffset: 3px;
+
+@largeFont: 24px;
+@titleFont: 28px;
+
+// Colors
 @paleGray: #DDDEDE;
 @offBlack: #232122;
 @lightBlue: #7BA4A8;
+@paleGreen: #C0D28C;
 @lightGreen: #A5C05B;
 
-body {
+//Leaflet (Because Bootstrap overode these styles)
+.leaflet-marker-icon {
+  font-size: 12px;
+  font-weight: normal;
+  text-align: center;
+  border-radius: 0;
+  color: black;
+  padding: 0;
+}
+
+//Template: html,body
+html,body {
+  width: 100%;
+  height: 100%;
   margin: 0;
+  overflow: hidden; //Prevents the page from scrolling
   font-family: sans-serif;
   background-color: @paleGray;
+  line-height: normal;
 }
 
-#_tile_name {
-  color: @paleGray;
-  font-weight: bold;
-  padding: 0 12px;
-  float: left;
-}
-
+//Template: map
 #map {
   margin: @margin;
   height: 45vh;
   max-width: 100vw;
+
+  #dateSelect {
+    position: relative;
+    top: 0;
+    float: right;
+    margin: 10px;
+
+    font-size: @titleFont;
+    font-weight: bold;
+    z-index: 1000;
+
+    #dateSelector {
+      width: 20vw;
+    }
+  }
 }
 
-#_menu_options {
-  padding: 0 12px;
-  float: right;
-
-  :hover {}
-}
-
-._tile_data_display {
+//Template: plantTypesNavBar
+#plantTypesNavBar {
   margin: @margin;
+  font-size: 16px;
 
   ul {
-    padding: 8px;
+    padding: @recessedMargin;
     background-color: @offBlack;
-    list-style-type: none;
     text-align: center;
+    color: white;
+
+    :first-child, :last-child {
+      position: absolute;
+      font-weight: bold;
+    }
+
+    :first-child {
+      left: @margin * 2 - @marginOffset;
+    }
+
+    :last-child {
+      right: @margin * 2 - @marginOffset;
+    }
+
+    #lastModified {
+      display: inline-block;
+    }
+
+    a {
+      text-decoration: none;
+      padding: @margin - @marginOffset;
+      color: inherit;
+    }
+
+    a:hover {
+      background-color: @lightGreen;
+    }
+
+    a:target {
+      background-color: @lightBlue;
+    }
+
   }
 
-  a {
-    display: inline;
-    color: @paleGray;
-    text-decoration: none;
-    padding: 12px;
-  }
+}
 
-  a:hover {
-    background-color: @lightGreen;
-  }
+//Template: dataDisplay
+#dataDisplay {
+  margin: @margin;
 
-  .active {
-    background-color: @lightBlue;
-  }
-
-  #_invasive_category {
+  .inputHeader, .inputResults {
     padding: 0;
-    font-size: 24px;
+    font-size: @largeFont;
   }
 
-  #_percent_coverage {
+  #coverageProgress, #coverageClass, #coveragePercent {
+    display: inline-block;
+    vertical-align: middle;
+    width: 20vw; //Previously 20vw
+    height: 4vh;
+
     text-decoration: none;
     text-align: right;
-    background-color: @lightBlue;
-    color: @paleGray;
-    font-size: 24px;
-    width: 20vw;
+    color: white;
+    font-size: @largeFont;
     padding: 6px 12px;
     margin: 3px;
     border: none;
   }
 
-  ._sub_tile_preview_array {
-    height: 38vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  #coverageProgress, #coverageClass {
+    background-color: @lightBlue;
+  }
 
-    td {
-      padding: 24px;
-    }
-
-    ._subtile_preview {
-      font-size: 24px;
-
-      #_invasive_category {
-        font-size: 20px;
-      }
-
-      #_percent_coverage {
-        font-size: 20px;
-        background-color: @lightGreen;
-      }
-
-      ._plant_data {
-
-        #_percent_coverage {
-          background-color: @lightBlue;
-        }
-      }
-    }
+  #coveragePercent {
+    background-color: @lightGreen;
   }
 }
 
+#detailTable {
+  border-collapse: collapse;
+  margin: 16px auto;
 
+  th, td {
+    width: 200px;
+    border: 2px solid #ddd;
+  }
+
+  thead tr {
+    display:block;
+    font-size: 20px;
+
+    th {
+      text-align: left;
+      padding: 6px 12px;
+      background-color: @lightBlue;
+      color: white;
+    }
+  }
+
+  tbody {
+    position: relative;
+    display: block;
+    overflow: auto;
+    font-size: 18px;
+    max-height: 200px;
+
+    tbody:first-child {
+      .selected
+    }
+
+    td {
+      vertical-align: top;
+      text-align: right;
+
+      textarea, input {
+        margin: 0;
+        padding: 6px 12px;
+        color: inherit;
+        -webkit-appearance: none;
+        background-color: inherit;
+        border-style: none;
+        border-width: 0;
+        width: 100%;
+      }
+
+      input:focus, textarea:focus {
+        background-color: @paleGreen;
+        color: White;
+      }
+
+      ::-webkit-input-placeholder { opacity: 1; -webkit-transition: opacity .5s; transition: opacity .5s; }  /* Chrome <=56, Safari < 10 */
+      :-moz-placeholder { opacity: 1; -moz-transition: opacity .5s; transition: opacity .5s; } /* FF 4-18 */
+      ::-moz-placeholder { opacity: 1; -moz-transition: opacity .5s; transition: opacity .5s; } /* FF 19-51 */
+      :-ms-input-placeholder { opacity: 1; -ms-transition: opacity .5s; transition: opacity .5s; } /* IE 10+ */
+      ::placeholder { opacity: 1; transition: opacity .5s; } /* Modern Browsers */
+
+      *:focus::-webkit-input-placeholder { opacity: 0; } /* Chrome <=56, Safari < 10 */
+      *:focus:-moz-placeholder { opacity: 0; } /* FF 4-18 */
+      *:focus::-moz-placeholder { opacity: 0; } /* FF 19-50 */
+      *:focus:-ms-input-placeholder { opacity: 0; } /* IE 10+ */
+      *:focus::placeholder { opacity: 0; } /* Modern Browsers */
+    }
+  }
+
+  .selected {
+    background-color: @lightGreen;
+    color: white;
+  }
+
+  .historyComments {
+    width: 400px;
+  }
+}
+
+._styled_button {
+  background-color: @lightGreen;
+  color: white;
+  font-size: 18px;
+	border: none;
+	padding: 6px 12px;
+  margin: 3px;
+}
+
+#subtileDetails {
+  text-align: center;
+
+  #detailHeaders {
+    width: 200px; //Previously 20vw
+    height: 400px;
+    background-color: @lightBlue;
+    color: white;
+  }
+
+  #details {
+
+  }
+}
+
+#photoButton {
+  position: absolute;
+  margin: @margin 0;
+  bottom: 0;
+}
+
+#photoModal {
+  position: fixed;
+  display: none;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 100vh;
+  -webkit-transform: translate(-50%,-50%);
+  -moz-transform: translate(-50%,-50%);
+  -ms-transform: translate(-50%,-50%);
+  -o-transform: translate(-50%,-50%);
+  transform: translate(-50%,-50%);
+  z-index: 9999;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  white-space: nowrap;
+
+  justify-content: center;
+  align-items: center;
+
+  #photoUpload {
+    flex: none;
+    height: 33px;
+    margin: @margin 0;
+    bottom: 0;
+  }
+
+  .slide {
+    display: block;
+  }
+}
+
+#_default_layer_message {
+  font-size: @largeFont;
+  margin: 3px;
+  text-align: center;
+}
+
+::-webkit-scrollbar {
+  width: 0px;  /* remove scrollbar space */
+  background: transparent;  /* optional: just make scrollbar invisible */
+}
+
+input:focus {
+  outline-width: 0;
+}
 
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -117,5 +298,3 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
-
-._work_history {}
