@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Template } from 'meteor/templating';
 import { ReactiveVar } from 'meteor/reactive-var';
 import Moment from 'moment';
@@ -6,26 +5,12 @@ import { TileData } from '/lib/tile_data.js'
 import './main.html';
 
 const Map = require('/client/map.js');
-=======
-import {
-  Template
-} from 'meteor/templating';
-import {
-  ReactiveVar
-} from 'meteor/reactive-var';
-import {
-  TileData
-} from '../lib/collections.js';
-
-import './main.html';
->>>>>>> 14d7af9089e950e1200b5be990583b83fc73b3fc
 
 //Author: Julian Donovan
 //Contact: julian.a.donov@gmail.com
 
 //Pictures w/ annotations
 //Class + Percent coverage for each species (4) for varying time periods
-<<<<<<< HEAD
 
 Session.set("lonLat");
 
@@ -233,8 +218,8 @@ function rankSitesByPriority() {
 
 //TODO: Currently simplified to intersort by coverage
 function rankSitesByPlantType(plantType, tiles) {
+}
 
-=======
 //Number of resprouts for each species (4)
 
 Template.propertyMap.onCreated(() => {
@@ -552,5 +537,4 @@ function generateSubTiles(subPlots, lonLatRow, num) {
       }
     });
   }
->>>>>>> 14d7af9089e950e1200b5be990583b83fc73b3fc
 }

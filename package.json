@@ -5,21 +5,13 @@
     "start": "meteor run",
     "test": "meteor test --once --driver-package meteortesting:mocha",
     "test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
-<<<<<<< HEAD
-    "visualize": "meteor --production --extra-packages bundle-visualizer",
+    "visualize": "meteor --production --extra-packages bundle-visualizer"
   },
   "dependencies": {
     "@babel/runtime": "^7.0.0",
     "babel-runtime": "^6.26.0",
     "meteor-node-stubs": "^0.4.1",
     "moment": "^2.24.0"
-=======
-    "visualize": "meteor --production --extra-packages bundle-visualizer"
-  },
-  "dependencies": {
-    "@babel/runtime": "^7.0.0",
-    "meteor-node-stubs": "^0.4.1"
->>>>>>> 14d7af9089e950e1200b5be990583b83fc73b3fc
   },
   "meteor": {
     "mainModule": {

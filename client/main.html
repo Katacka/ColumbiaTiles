@@ -1,16 +1,11 @@
 <head>
-<<<<<<< HEAD
   <title>CSIMT</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-=======
-  <title>ColumbiaTiles</title>
->>>>>>> 14d7af9089e950e1200b5be990583b83fc73b3fc
 </head>
 
 <body>
   <!--{{> menuBar}}-->
   {{> tileComposite}}
-<<<<<<< HEAD
   {{> photoModal}} <!-- Move these two -->
 </body>
 
@@ -19,19 +14,10 @@
     {{> propertyMap}}
     {{> plantTypesNavBar}}
     {{> dataDisplay}}
-=======
-</body>
-
-<template name="tileComposite">
-  <div class="_tile_composite">
-    {{> propertyMap}}
-    {{> tileDataDisplay}}
->>>>>>> 14d7af9089e950e1200b5be990583b83fc73b3fc
   </div>
 </template>
 
 <template name="propertyMap">
-<<<<<<< HEAD
   <div id="map">
     {{> dateSelect}}
   </div>
@@ -141,75 +127,3 @@
       id="my-awesome-dropzone"></form>
   </div>
 </template>
-=======
-  <div id="map"></div>
-</template>
-
-<template name="tileDataDisplay">
-
-  <div class="_tile_data_display">
-    <div class="_plant_types_nav_bar">
-      <ul>
-        <span id="_tile_name">{{tileName}}</span>
-        <a name="laurel" href="#laurel" class="{{#if isContext 'laurel'}}active{{/if}}">Laurel</a>
-        <a name="blackberry" href="#blackberry" class="{{#if isContext 'blackberry'}}active{{/if}}">Blackberry</a>
-        <a name="smallHolly" href="#smallHolly" class="{{#if isContext 'smallHolly'}}active{{/if}}">Small Holly</a>
-        <a name="largeHolly" href="#largeHolly" class="{{#if isContext 'largeHolly'}}active{{/if}}">Large Holly</a>
-        <a name="groundIvy" href="#groundIvy" class="{{#if isContext 'groundIvy'}}active{{/if}}">Ground Ivy</a>
-        <a name="treeIvy" href="#treeIvy" class="{{#if isContext 'treeIvy'}}active{{/if}}">Tree Ivy</a>
-      </ul>
-    </div>
-    {{#if tileDisplay}}
-      {{> plantData tileData=tileData}}
-    {{> subtilePreviewArray subtileArray=subtileArray}}
-    <img src="">
-    {{/if}}
-  </div>
-</template>
-
-<template name="plantData">
-  <div class="_plant_data">
-    <span id="_invasive_category">Class {{tileData.class}}:</span>
-    <input type="number" max="100" min="0" value="{{tileData.coverage}}" id="_percent_coverage">
-    <!--<span id="_value_padding">%</span>-->
-  </div>
-</template>
-
-<template name="subtilePreviewArray">
-  <div class="_sub_tile_preview_array">
-    <table>
-      <tr>
-        <td>{{> subtilePreview subtile=subtileArray.[0]}}</td>
-        <td>{{> subtilePreview subtile=subtileArray.[1]}}</td>
-      </tr>
-      <tr>
-        <td>{{> subtilePreview subtile=subtileArray.[2]}}</td>
-        <td>{{> subtilePreview subtile=subtileArray.[3]}}</td>
-      </tr>
-    </table>
-  </div>
-</template>
-
-<template name="subtilePreview">
-  <div class="_subtile_preview">
-    {{subtile.name}}
-    {{> plantData tileData=subtile}}
-    <span id="_invasive_category">Resprouts: </span>
-    <input type="number" max="100" min="0" value="{{subtile.resprouts}}" id="_percent_coverage">
-  </div>
-</template>
-
-<template name="workHistory">
-  <div class="_work_history">
-
-  </div>
-</template>
-
-<!--
-Subtile Layer
-<p>Time:</p>
-<p>Method:</p>
-<p>Crew Size:</p>
-<p>Crew Leader:</p>
-<p>Comments:</p>-->
->>>>>>> 14d7af9089e950e1200b5be990583b83fc73b3fc
