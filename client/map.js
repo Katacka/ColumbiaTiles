@@ -1,4 +1,5 @@
 import { TileData } from '/lib/tile_data.js';
+import Trails from '/client/trails.js'
 import Moment from 'moment';
 
 const FILL_OPACITY = 0.5; //Semi-transparent
@@ -10,11 +11,13 @@ const MapLayers = Object.freeze({
 });
 
 module.exports = {
-  mapContext: undefined,
-  tileLayerContext: undefined,
-  subTileLayerContext: undefined,
-  tileCompositeLayerContext: undefined,
-  subTileCompositeLayerContext: undefined,
+  mapContext: null,
+  tileLayerContext: null,
+  subTileLayerContext: null,
+  tileCompositeLayerContext: null,
+  subTileCompositeLayerContext: null,
+  trailsContext: null,
+  updateTileParam: updateTileParam,
 
   generateMap: () => {
     module.exports.mapContext = L.map('map', {
@@ -36,6 +39,7 @@ module.exports = {
 
     generateTilesWithData();
     setOnZoomListener();
+    generateTrailPolyLine();
   },
 
   updateMapColoring: () => { //TODO: Test functionality
@@ -110,15 +114,13 @@ module.exports = {
     return '#BEBEBE'; //Light-gray
   },
 
-  //Needs bug fixing
   findClosestTileByDate: (tile, plantFocus, currDate) => {
     let prevDate = -Infinity, desiredDate = new Date(currDate);
     for (let date in tile[plantFocus].dates) {
       let tmpDate = new Date(date);
-      console.log(tmpDate);
-      console.log(desiredDate);
       if (tmpDate.valueOf() <= desiredDate.valueOf()) {
         prevDate = tmpDate;
+        break;
       }
     }
 
@@ -148,6 +150,11 @@ function checkTileUpdate(tile, plantFocus, currDate, prevDate) {
   else tile[plantFocus].needsUpdate = false;
 }
 
+function generateTrailPolyLine() {
+  let columbiaSpringsPaths = L.geoJSON(Trails);
+  module.exports.trailsContext = columbiaSpringsPaths;
+}
+
 function generateTilesWithData() {
   let plotRef = { plots: [], subplots: [] };
   let map = module.exports.mapContext;
@@ -169,6 +176,7 @@ function generateTilesWithData() {
     },
     {
       lon: -122.54991,
+
       lat: 45.60153,
       size: 9
     },
@@ -222,17 +230,22 @@ function generateTiles(plotRef, lonLatRows) {
   num = 1;
   lonLatRows.forEach(lonLatRow => {
     for (let i = 1; i <= lonLatRow.size; i++, num++) {
+
+      //Iterate over "skipped" tiles
       if (lonLatRow.skip && lonLatRow.skip.includes(i)) {
         num--;
         lonLatRow.lon = lonLatRow.lon + 0.00064;
         continue;
       }
 
+      let lonLat = { 'lon': lonLatRow.lon, 'lat': lonLatRow.lat };
+      updateTileParam(num, 'lonLat', lonLat);
+
       plotRef.plots.push({
         "type": "Feature",
         "properties": {
           "num": num,
-          "lonLat": { 'lon': lonLatRow.lon, 'lat': lonLatRow.lat }
+          "lonLat": lonLat,
         },
         "geometry": {
           "type": "Polygon",
@@ -259,13 +272,17 @@ function generateSubTiles(plotRef, lonLatRow, num) {
   let lonTileOffset = 0.00032;
   let latTileOffset = 0.000225;
 
-  quadLonRef = lonLatRow.lon;
-  quadLatRef = lonLatRow.lat;
+  let quadLonRef = lonLatRow.lon;
+  let quadLatRef = lonLatRow.lat;
+
   for (let i = 0, j = 0; i < 4; i++) {
-    name = num + String.fromCharCode(97 + i);
-    quadLon = quadLonRef + lonTileOffset * (i % 2);
-    quadLat = quadLatRef - latTileOffset * (j % 2);
+    let name = num + String.fromCharCode(97 + i);
+    let quadLon = quadLonRef + lonTileOffset * (i % 2);
+    let quadLat = quadLatRef - latTileOffset * (j % 2);
+    let lonLat = { 'lon': quadLon, 'lat': quadLat };
     if (i % 2) j++;
+
+    updateTileParam(num, 'lonLat', lonLat, i);
 
     plotRef.subplots.push({
       "type": "Feature",
@@ -273,7 +290,7 @@ function generateSubTiles(plotRef, lonLatRow, num) {
         "name": name,
         "num": num,
         "idx": i,
-        "lonLat": { 'lon': quadLon, 'lat': quadLat }
+        "lonLat": lonLat,
       },
       "geometry": {
         "type": "Polygon",
@@ -386,4 +403,13 @@ function setOnZoomListener() {
     Session.set('tileContext');
     Session.set("lonLat");
   });
+}
+
+function updateTileParam(num, featureName, featureVal, subtileIdx) {
+  let tile = TileData.findOne({"num": num});
+  if (typeof subtileIdx === "number") {
+    tile.subtiles[subtileIdx][featureName] = featureVal;
+  }
+  else tile[featureName] = featureVal;
+  Meteor.call('updateTile', tile);
 }
