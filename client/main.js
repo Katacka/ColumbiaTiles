@@ -43,7 +43,7 @@ Template.propertyMap.onCreated(() => {
   Meteor.subscribe('TileData', () => { //Accesses  tile data as stored on the server to generate a map
     console.log(TileData.find().fetch());
     Map.generateMap();
-    rankSitesByPriority();
+    rankTilesByPriority();
   });
 });
 
@@ -108,11 +108,7 @@ Template.dataDisplay.helpers({
 
     layerContext.setStyle({ fillColor: Map.updateTileCoverageColoring(tile, plantFocus, date) }); //Updates map coloring
 
-    if (tile[plantFocus].dates[date]) {
-      Session.set('lastModified', date);
-      return tile[plantFocus].dates[date];
-    }
-    else return Map.findClosestTileByDate(tile, plantFocus, date);;
+    return Map.findClosestTileByDate(tile, plantFocus, date);
   }
 });
 
@@ -183,7 +179,6 @@ function parseDate(s) {
     var b = s.split(/\D/);
     return new Date(b[0], --b[1], b[2]);
   }
-  return undefined;
 }
 
 function invasiveCoverageConversion(percentCoverage) {
@@ -202,20 +197,81 @@ function invasiveCoverageConversion(percentCoverage) {
   }
 }
 
-
-
-function rankSitesByPriority() {
+function rankTilesByPriority() {
   let tiles = TileData.find().fetch();
-  /*let siteRankings = {
-    laurel: rankSitesByPriority('laurel', tiles),
-    blackberry: rankSitesByPriority('blackberry', tiles),
-    smallHolly: rankSitesByPriority('smallHolly', tiles),
-    largeHolly: rankSitesByPriority('largeHolly', tiles),
-    groundIvy: rankSitesByPriority('groundIvy', tiles),
-    treeIvy: rankSitesByPriority('treeIvy', tiles)
-  }*/
+  let siteRankings = {
+    laurel: rankTilesByPlantType(tiles, 'laurel'),
+    blackberry: rankTilesByPlantType(tiles, 'blackberry'),
+    holly: {
+      smallHolly: rankTilesByPlantType(tiles, 'smallHolly'),
+      largeHolly: rankTilesByPlantType(tiles, 'largeHolly'),
+      overall: rankTilesByPlantType(tiles, 'smallHolly', 'largeHolly'),
+    },
+    ivy: {
+      groundIvy: rankTilesByPlantType(tiles, 'groundIvy'),
+      treeIvy: rankTilesByPlantType(tiles, 'treeIvy'),
+      overall: rankTilesByPlantType(tiles, 'groundIvy', 'treeIvy'),
+    }
+  }
+  console.log(siteRankings);
 }
 
 //TODO: Currently simplified to intersort by coverage
-function rankSitesByPlantType(plantType, tiles) {
+function rankTilesByPlantType(tiles, ...plantTypes) {
+  let date = Session.get('date');
+  let sortedTiles = tiles.filter(tile => plantGroupCoverageSum(tile, date, plantTypes) > 0)
+                         .sort((a, b) => {
+                           let bScore = plantGroupCoverageSum(b, date, plantTypes) * calculateMinTrailDistance(b);
+                           let aScore = plantGroupCoverageSum(a, date, plantTypes) * calculateMinTrailDistance(a);
+                           return bScore - aScore;
+                         });
+
+  let subtiles = [];
+  tiles.forEach(tile => {
+    tile.subtiles.forEach(subtile => subtiles.push(subtile))
+  })
+
+  let sortedSubtiles = subtiles.filter(subtile => plantGroupCoverageSum(subtile, date, plantTypes) > 0)
+                               .sort((a, b) => {
+                                 let bScore = plantGroupCoverageSum(b, date, plantTypes) * calculateMinTrailDistance(b);
+                                 let aScore = plantGroupCoverageSum(a, date, plantTypes) * calculateMinTrailDistance(a);
+                                 return bScore - aScore
+                               });
+
+  return {tiles: sortedTiles, subtiles: sortedSubtiles};
+}
+
+function plantGroupCoverageSum(tile, date, plantTypes) {
+  let coverageSum = 0;
+  plantTypes.forEach(plantType => {
+    let focusedTile = Map.findClosestTileByDate(tile, plantType, date);
+    if (focusedTile) {
+      coverageSum += (1 + focusedTile.coverage)
+    }
+  });
+  return coverageSum;
+}
+
+function calculateMinTrailDistance(tile) {
+  if (tile.trailDistance) return tile.trailDistance;
+
+  let minDistance = Infinity;
+  let tileCenter = tile.lonLat;
+
+  Map.trailsContext.eachLayer((layer) => {
+    layer.feature.geometry.coordinates.forEach((point) => {
+      let lonDistance = Math.pow(point[0] - tileCenter.lon, 2);
+      let latDistance = Math.pow(point[1] - tileCenter.lat, 2);
+      let distance = Math.sqrt(lonDistance + latDistance);
+      if (distance <= minDistance) {
+        minDistance = distance;
+      }
+    });
+  });
+
+  let effectiveDistance = 1 / minDistance;
+  let subtileIdx = (typeof tile.idx === 'number') ? tile.idx : null;
+  Map.updateTileParam(tile.num, 'trailDistance', effectiveDistance, subtileIdx);
+
+  return effectiveDistance;
 }
