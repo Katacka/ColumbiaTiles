@@ -139,7 +139,6 @@ module.exports = {
 
 }
 
-//TODO: Implement violet coloring for plots which require visitation
 //Consider marking and rendering later?
 function checkTileUpdate(tile, plantFocus, currDate, prevDate) {
   let checkupTimer = 1.577e10; //6 months in milliseconds

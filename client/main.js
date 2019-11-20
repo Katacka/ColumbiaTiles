@@ -16,9 +16,14 @@ Session.set("lonLat");
 
 Template.body.events({
   'click'(event) {
-    if ($('#tileComposite').css('filter') !== 'none' && new Date().getTime() > Session.get('blurTime') + 250) {
-      $('#tileComposite').css("filter", "none"); //Unblur the background
-      $('#photoModal').css('display', 'none'); //Hide the photo modal
+    if (event.currentTarget.id == 'analyticsOverlay' || event.currentTarget.id == 'photoModal') {
+      if ($('#tileComposite').css('filter') !== 'none' && new Date().getTime() > Session.get('blurTime') + 250) {
+        $('#tileComposite').css("filter", "none"); //Unblur the background
+        $('#photoModal').css('display', 'none'); //Hide the photo modal
+        $('#analyticsOverlay').css('display', 'none'); //Hide the analytics overlay
+
+        window.location.hash = Session.get('prevHash');
+      }
     }
   }
 });
@@ -36,14 +41,45 @@ Template.photoModal.helpers({
 });
 
 Template.photoModal.events({
-
 });
+
+Template.analyticsOverlay.onCreated(() => {
+  //Tile priority
+  Session.set('selectedPlantTypes', ['blackberry']);
+});
+
+Template.analyticsOverlay.helpers({
+  isTilePriortities() {
+    return Session.get('analyticsOption');
+  },
+  tilePriority() {
+    let selectedPlantTypes = Session.get('selectedPlantTypes');
+    let tiles = TileData.find().fetch();
+
+    return rankTilesByPlantType(tiles, ...selectedPlantTypes).tiles;
+  }
+});
+
+Template.analyticsOverlay.events({
+  'click .checkmark' (event) {
+    let selectedPlantTypes = Session.get('selectedPlantTypes');
+    let plantType = event.target.dataset.plantType;
+
+    if (selectedPlantTypes.includes(plantType)) selectedPlantTypes = selectedPlantTypes.filter((plant) => plant != plantType);
+    else selectedPlantTypes.push(plantType);
+
+    console.log(selectedPlantTypes);
+    Session.set('selectedPlantTypes', selectedPlantTypes);
+  }
+});
+
+
 
 Template.propertyMap.onCreated(() => {
   Meteor.subscribe('TileData', () => { //Accesses  tile data as stored on the server to generate a map
     console.log(TileData.find().fetch());
     Map.generateMap();
-    rankTilesByPriority();
+    //rankTilesByPriority();
   });
 });
 
@@ -137,21 +173,35 @@ Template.dataDisplay.events({
     $('#tileComposite').css('filter', "blur(5px)"); //Blurs the background
     $('#photoModal').css("display", "flex");
     Session.set('blurTime', new Date().getTime());
+
+  },
+  'click #analyticsButton'(event, template) {
+    $('#tileComposite').css('filter', "blur(5px)"); //Blurs the background
+    $('#analyticsOverlay').css("display", "flex");
+    Session.set('blurTime', new Date().getTime());
+
+    //Grant tile priority default focus
+    Session.set('prevHash', window.location.hash);
+    Session.set('analyticsOption', 'tilePriorities');
+    window.location.hash = 'tilePriorities';
   }
 });
 
-function handleSubtileData(event) {
-  let coveragePercent = parseInt(event.currentTarget.value);
+function handleSubtileData(event, progressUpdate) {
   let plantFocus = Session.get('plantFocus');
   let subtile = Session.get('tileContext');
   let date = Session.get('date');
 
+  let prevTileRef = Map.findClosestTileByDate(subtile, plantFocus, date);
+  let coverage = parseFloat($('#coveragePercent').val());
+  let progress = (prevTileRef) ? prevTileRef.coverage - coverage : 0;
+
   let dataContext = $('#detailData');
   let data = {
-    'class': invasiveCoverageConversion(parseFloat($('#coveragePercent').val())),
-    'progress': 0,
-    'coverage': parseFloat($('#coveragePercent').val()),
-    'date': Session.get('date'),
+    'class': invasiveCoverageConversion(coverage),
+    'progress': progress.toFixed(1),
+    'coverage': coverage,
+    'date': date,
     'method': dataContext.find('.historyMethod').val(),
     'leader': dataContext.find('.historyLeader').val(),
     'size': parseInt(dataContext.find('.historySize').val()),
@@ -160,9 +210,8 @@ function handleSubtileData(event) {
   }
 
   //Ensure all necessary data has been provided
-  for (let key in data)  {
-    if (data[key] === null || data[key] === undefined || data[key] === "") return;
-  }
+  if (isNaN(data['coverage'])) return;
+  //if (data['coverage'] === null || data['coverage'] === undefined || data['coverage'] === "") return;
 
   subtile[plantFocus].dates[date] = data;
   console.log(subtile);
@@ -211,12 +260,14 @@ function rankTilesByPriority() {
       groundIvy: rankTilesByPlantType(tiles, 'groundIvy'),
       treeIvy: rankTilesByPlantType(tiles, 'treeIvy'),
       overall: rankTilesByPlantType(tiles, 'groundIvy', 'treeIvy'),
-    }
+    },
+    ivyBlackberry: rankTilesByPlantType(tiles, 'groundIvy', 'treeIvy', 'blackberry'),
+    overall: rankTilesByPlantType(tiles, 'laurel', 'blackberry', 'smallHolly', 'largeHolly', 'groundIvy', 'treeIvy')
   }
   console.log(siteRankings);
 }
 
-//TODO: Currently simplified to intersort by coverage
+//TODO: Currently simplified to intersort by coverage/trails
 function rankTilesByPlantType(tiles, ...plantTypes) {
   let date = Session.get('date');
   let sortedTiles = tiles.filter(tile => plantGroupCoverageSum(tile, date, plantTypes) > 0)
@@ -264,12 +315,12 @@ function calculateMinTrailDistance(tile) {
       let latDistance = Math.pow(point[1] - tileCenter.lat, 2);
       let distance = Math.sqrt(lonDistance + latDistance);
       if (distance <= minDistance) {
-        minDistance = distance;
+        minDistance = (distance === 0) ? distance  + 0.000001 : distance;
       }
     });
   });
 
-  let effectiveDistance = 1 / minDistance;
+  let effectiveDistance = Math.abs(Math.log(minDistance));
   let subtileIdx = (typeof tile.idx === 'number') ? tile.idx : null;
   Map.updateTileParam(tile.num, 'trailDistance', effectiveDistance, subtileIdx);
 
